@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+@theme {
+  /* Strategy action palette (handoff §8) */
+  --color-hit: #ef4444;
+  --color-stand: #16a34a;
+  --color-double: #2563eb;
+  --color-split: #eab308;
+  --color-surrender: #6b7280;
+
+  --color-felt: #0f5132;
+  --color-felt-dark: #0a3a24;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: #0b1120;
+  color: #e5e7eb;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
