@@ -6,7 +6,7 @@ export interface GridRow {
   actions: ChartRow;
   /** true when the row is not part of the returned chart but implied by the rules. */
   implicit?: boolean;
-  /** short explanation shown as a footnote-style hint. */
+  /** i18n key (under `strategy.`) for a footnote-style hint. */
   note?: string;
 }
 
@@ -84,7 +84,7 @@ export function buildPairRows(chart: StrategyChartResponse["chart"]): GridRow[] 
         rows.push({
           label: "5,5",
           actions: hard10,
-          note: "plays as hard 10",
+          note: "playsAsHard10",
         });
       }
       continue;
@@ -108,14 +108,6 @@ export function buildRows(
       return buildPairRows(chart);
   }
 }
-
-export const ACTION_LABELS: Record<Action, string> = {
-  hit: "Hit",
-  stand: "Stand",
-  double: "Double",
-  split: "Split",
-  surrender: "Surrender",
-};
 
 export const ACTION_ABBR: Record<Action, string> = {
   hit: "H",

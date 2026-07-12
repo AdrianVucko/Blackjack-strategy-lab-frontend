@@ -96,7 +96,7 @@ describe("buildPairRows", () => {
     const rows = buildPairRows(chart);
     const fives = rows.find((r) => r.label === "5,5");
     expect(fives).toBeDefined();
-    expect(fives?.note).toContain("hard 10");
+    expect(fives?.note).toBe("playsAsHard10");
     expect(fives?.actions["6"]).toBe("double"); // same as hard["10"]
   });
 

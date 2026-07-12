@@ -1,6 +1,9 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { apiGet } from "@/api/client";
 import { useAsync } from "@/hooks/use-async";
+import { SUPPORTED_LANGUAGES } from "@/i18n";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { RulesConfigurator } from "@/features/rules/RulesConfigurator";
 import { StrategyChart } from "@/features/strategy/StrategyChart";
 import { RunHistory } from "@/features/history/RunHistory";
@@ -25,6 +28,7 @@ interface Health {
 }
 
 function HealthBadge() {
+  const { t } = useTranslation();
   const state = useAsync((signal) => apiGet<Health>("/health", { signal }), []);
 
   const online = state.status === "success";
@@ -35,10 +39,10 @@ function HealthBadge() {
       : "bg-red-500";
   const text =
     state.status === "success"
-      ? `backend online · v${state.data.version}`
+      ? t("health.online", { version: state.data.version })
       : state.status === "loading"
-        ? "connecting…"
-        : "backend offline";
+        ? t("health.connecting")
+        : t("health.offline");
 
   return (
     <div className="flex items-center gap-2 text-xs text-slate-400">
@@ -50,15 +54,21 @@ function HealthBadge() {
 
 type View = "strategy" | "simulator" | "counting" | "history";
 
-const VIEWS: { id: View; label: string }[] = [
-  { id: "strategy", label: "Strategy chart" },
-  { id: "simulator", label: "Simulator" },
-  { id: "counting", label: "Counting lab" },
-  { id: "history", label: "Run history" },
+const VIEWS: { id: View; labelKey: string }[] = [
+  { id: "strategy", labelKey: "nav.strategy" },
+  { id: "simulator", labelKey: "nav.simulator" },
+  { id: "counting", labelKey: "nav.counting" },
+  { id: "history", labelKey: "nav.history" },
 ];
 
 function App() {
+  const { t, i18n } = useTranslation();
   const [view, setView] = useState<View>("strategy");
+
+  useEffect(() => {
+    document.documentElement.lang =
+      SUPPORTED_LANGUAGES.find((lng) => i18n.language?.startsWith(lng)) ?? "hr";
+  }, [i18n.language]);
 
   return (
     <RulesProvider>
@@ -68,11 +78,12 @@ function App() {
             <h1 className="text-xl font-bold text-slate-50">
               Blackjack Strategy Lab
             </h1>
-            <p className="text-sm text-slate-400">
-              Rules, optimal basic strategy, and Monte-Carlo analysis.
-            </p>
+            <p className="text-sm text-slate-400">{t("app.subtitle")}</p>
           </div>
-          <HealthBadge />
+          <div className="flex items-center gap-4">
+            <HealthBadge />
+            <LanguageSwitcher />
+          </div>
         </header>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(320px,360px)_1fr]">
@@ -93,7 +104,7 @@ function App() {
                       : "text-slate-300 hover:text-white"
                   }`}
                 >
-                  {v.label}
+                  {t(v.labelKey)}
                 </button>
               ))}
             </nav>
@@ -101,7 +112,7 @@ function App() {
               <Suspense
                 fallback={
                   <div className="p-8 text-center text-sm text-slate-400">
-                    Loading…
+                    {t("app.loading")}
                   </div>
                 }
               >

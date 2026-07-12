@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ChartPanel } from "@/components/ChartPanel";
 import { NumberField, Toggle } from "@/components/ui/controls";
 import { StatCard } from "@/components/ui/StatCard";
@@ -42,6 +43,7 @@ interface SimResult {
 }
 
 export function SimulatorView() {
+  const { t } = useTranslation();
   const { rules } = useRules();
   const [params, setParams] = useState<SimParams>(DEFAULT_PARAMS);
   const { state, run } = useAction<SimResult>();
@@ -75,19 +77,18 @@ export function SimulatorView() {
   return (
     <section className="flex flex-col gap-5">
       <header className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold text-slate-100">Simulator</h2>
-        <p className="text-xs text-slate-400">
-          Monte-Carlo simulation of basic strategy under the current rules. Bets
-          and results are in base-bet units.
-        </p>
+        <h2 className="text-lg font-semibold text-slate-100">
+          {t("sim.title")}
+        </h2>
+        <p className="text-xs text-slate-400">{t("sim.subtitle")}</p>
       </header>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-2 sm:col-span-2">
           <NumberField
             id="num_rounds"
-            label="Rounds"
-            hint="1 – 5,000,000. Large runs take a few seconds."
+            label={t("sim.rounds")}
+            hint={t("sim.roundsHint")}
             value={params.num_rounds}
             min={1}
             max={5_000_000}
@@ -114,7 +115,7 @@ export function SimulatorView() {
 
         <NumberField
           id="bet"
-          label="Bet (units)"
+          label={t("sim.bet")}
           value={params.bet}
           min={0.01}
           step={1}
@@ -122,8 +123,8 @@ export function SimulatorView() {
         />
         <NumberField
           id="max_curve_points"
-          label="Curve resolution"
-          hint="2 – 5000 plotted points"
+          label={t("sim.curveResolution")}
+          hint={t("sim.curveResolutionHint")}
           value={params.max_curve_points}
           min={2}
           max={5000}
@@ -134,8 +135,8 @@ export function SimulatorView() {
 
       <div className="flex flex-col divide-y divide-slate-700/60 rounded-lg border border-slate-700/60 bg-slate-800/40 px-4 py-1">
         <Toggle
-          label="Track bankroll"
-          hint="Enables the risk-of-ruin estimate"
+          label={t("sim.trackBankroll")}
+          hint={t("sim.trackBankrollHint")}
           checked={params.trackBankroll}
           onChange={(v) => update("trackBankroll", v)}
         />
@@ -143,7 +144,7 @@ export function SimulatorView() {
           <div className="py-2">
             <NumberField
               id="starting_bankroll"
-              label="Starting bankroll"
+              label={t("sim.startingBankroll")}
               value={params.starting_bankroll}
               min={1}
               step={100}
@@ -152,8 +153,8 @@ export function SimulatorView() {
           </div>
         )}
         <Toggle
-          label="Reproducible (fixed seed)"
-          hint="Same seed + request → identical results"
+          label={t("sim.reproducible")}
+          hint={t("sim.reproducibleHint")}
           checked={params.reproducible}
           onChange={(v) => update("reproducible", v)}
         />
@@ -161,7 +162,7 @@ export function SimulatorView() {
           <div className="py-2">
             <NumberField
               id="seed"
-              label="Seed"
+              label={t("sim.seed")}
               value={params.seed}
               min={0}
               step={1}
@@ -177,19 +178,19 @@ export function SimulatorView() {
         disabled={running}
         className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {running ? "Running simulation…" : "Run simulation"}
+        {running ? t("sim.running") : t("sim.run")}
       </button>
 
       {state.status === "error" && (
         <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">
-          <p className="font-medium">Simulation failed.</p>
+          <p className="font-medium">{t("sim.errorTitle")}</p>
           <p className="mt-1 text-red-300/80">{state.error.message}</p>
         </div>
       )}
 
       {running && (
         <div className="rounded-lg border border-slate-700 bg-slate-800/40 p-8 text-center text-sm text-slate-400">
-          Simulating {formatInt(params.num_rounds)} rounds…
+          {t("sim.simulating", { n: formatInt(params.num_rounds) })}
         </div>
       )}
 
@@ -199,6 +200,7 @@ export function SimulatorView() {
 }
 
 function Results({ result }: { result: SimResult }) {
+  const { t } = useTranslation();
   const { sim, bankroll, distribution } = result;
   const stats = sim.statistics;
 
@@ -208,13 +210,13 @@ function Results({ result }: { result: SimResult }) {
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <ChartPanel
-          title="Bankroll / equity"
-          description="Cumulative result over rounds (downsampled)."
+          title={t("sim.bankrollTitle")}
+          description={t("sim.bankrollDesc")}
           figure={bankroll}
         />
         <ChartPanel
-          title="Per-round result distribution"
-          description="Histogram of net outcomes per round."
+          title={t("sim.distTitle")}
+          description={t("sim.distDesc")}
           figure={distribution}
         />
       </div>
@@ -229,43 +231,47 @@ function StatGrid({
   sim: SimulationResponse;
   stats: Statistics;
 }) {
+  const { t } = useTranslation();
   const edgeTone = stats.house_edge_pct > 0 ? "bad" : "good";
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       <StatCard
-        label="House edge"
+        label={t("stat.houseEdge")}
         value={formatPct(stats.house_edge_pct)}
         tone={edgeTone}
-        hint="Positive = house advantage"
+        hint={t("stat.houseEdgeHint")}
       />
       <StatCard
-        label="EV / round"
+        label={t("stat.ev")}
         value={formatSigned(stats.ev_per_round)}
         tone={stats.ev_per_round >= 0 ? "good" : "bad"}
-        hint={`95% CI [${stats.ci95[0].toFixed(3)}, ${stats.ci95[1].toFixed(3)}]`}
+        hint={t("stat.ci95", {
+          low: stats.ci95[0].toFixed(3),
+          high: stats.ci95[1].toFixed(3),
+        })}
       />
       <StatCard
-        label="Total result"
+        label={t("stat.totalResult")}
         value={formatUnits(stats.total_result, 1)}
         tone={stats.total_result >= 0 ? "good" : "bad"}
       />
-      <StatCard label="Std. deviation" value={stats.std_dev.toFixed(3)} />
+      <StatCard label={t("stat.stdDev")} value={stats.std_dev.toFixed(3)} />
       <StatCard
-        label="Rounds played"
+        label={t("stat.roundsPlayed")}
         value={formatInt(sim.rounds_played)}
-        hint={sim.ruined ? "ended early — bankroll ruined" : undefined}
+        hint={sim.ruined ? t("stat.ruinedEarly") : undefined}
         tone={sim.ruined ? "bad" : "neutral"}
       />
       {stats.risk_of_ruin !== null && (
         <StatCard
-          label="Risk of ruin"
+          label={t("stat.riskOfRuin")}
           value={formatPct(stats.risk_of_ruin * 100, 1)}
           tone={stats.risk_of_ruin > 0.5 ? "bad" : "neutral"}
         />
       )}
-      <StatCard label="Variance" value={stats.variance.toFixed(3)} />
-      <StatCard label="Std. error" value={stats.std_error.toFixed(4)} />
+      <StatCard label={t("stat.variance")} value={stats.variance.toFixed(3)} />
+      <StatCard label={t("stat.stdError")} value={stats.std_error.toFixed(4)} />
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import {
   NumberField,
   RangeField,
@@ -6,57 +7,60 @@ import {
 } from "@/components/ui/controls";
 import { useRules } from "@/state/rules-context";
 
-const PAYOUT_OPTIONS = [
-  { label: "3:2 (1.5)", value: 1.5 },
-  { label: "6:5 (1.2)", value: 1.2 },
-  { label: "1:1 (even money)", value: 1.0 },
-] as const;
-
-const DECK_OPTIONS = [1, 2, 4, 6, 8].map((n) => ({
-  label: `${n} deck${n > 1 ? "s" : ""}`,
-  value: n,
-}));
+const DECK_VALUES = [1, 2, 4, 6, 8];
 
 export function RulesConfigurator() {
+  const { t } = useTranslation();
   const { rules, updateRule, reset } = useRules();
+
+  const payoutOptions = [
+    { label: t("rules.payout32"), value: 1.5 },
+    { label: t("rules.payout65"), value: 1.2 },
+    { label: t("rules.payout11"), value: 1.0 },
+  ];
+
+  const deckOptions = DECK_VALUES.map((n) => ({
+    label: t("rules.deck", { count: n }),
+    value: n,
+  }));
 
   return (
     <section className="flex flex-col gap-5">
       <header className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-slate-100">Rules</h2>
-          <p className="text-xs text-slate-400">
-            Drives the strategy chart and every simulation.
-          </p>
+          <h2 className="text-lg font-semibold text-slate-100">
+            {t("rules.title")}
+          </h2>
+          <p className="text-xs text-slate-400">{t("rules.subtitle")}</p>
         </div>
         <button
           type="button"
           onClick={reset}
           className="rounded-md border border-slate-600 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-700"
         >
-          Reset defaults
+          {t("rules.reset")}
         </button>
       </header>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <SelectField
           id="num_decks"
-          label="Number of decks"
+          label={t("rules.numDecks")}
           value={rules.num_decks}
-          options={DECK_OPTIONS}
+          options={deckOptions}
           onChange={(v) => updateRule("num_decks", v)}
         />
         <SelectField
           id="blackjack_payout"
-          label="Blackjack payout"
+          label={t("rules.payout")}
           value={rules.blackjack_payout}
-          options={PAYOUT_OPTIONS}
+          options={payoutOptions}
           onChange={(v) => updateRule("blackjack_payout", v)}
         />
         <NumberField
           id="max_splits"
-          label="Max splits"
-          hint="0–4 hands"
+          label={t("rules.maxSplits")}
+          hint={t("rules.maxSplitsHint")}
           value={rules.max_splits}
           min={0}
           max={4}
@@ -65,8 +69,8 @@ export function RulesConfigurator() {
         />
         <RangeField
           id="penetration"
-          label="Penetration"
-          hint="Fraction of shoe dealt before reshuffle"
+          label={t("rules.penetration")}
+          hint={t("rules.penetrationHint")}
           value={rules.penetration}
           min={0.1}
           max={1}
@@ -78,28 +82,28 @@ export function RulesConfigurator() {
 
       <div className="flex flex-col divide-y divide-slate-700/60 rounded-lg border border-slate-700/60 bg-slate-800/40 px-4 py-1">
         <Toggle
-          label="Dealer hits soft 17"
-          hint="H17 adds roughly +0.2% house edge vs. S17"
+          label={t("rules.dealerHitsSoft17")}
+          hint={t("rules.dealerHitsSoft17Hint")}
           checked={rules.dealer_hits_soft_17}
           onChange={(v) => updateRule("dealer_hits_soft_17", v)}
         />
         <Toggle
-          label="Double allowed"
+          label={t("rules.doubleAllowed")}
           checked={rules.double_allowed}
           onChange={(v) => updateRule("double_allowed", v)}
         />
         <Toggle
-          label="Double after split"
+          label={t("rules.doubleAfterSplit")}
           checked={rules.double_after_split}
           onChange={(v) => updateRule("double_after_split", v)}
         />
         <Toggle
-          label="Resplit allowed"
+          label={t("rules.resplitAllowed")}
           checked={rules.resplit_allowed}
           onChange={(v) => updateRule("resplit_allowed", v)}
         />
         <Toggle
-          label="Surrender allowed"
+          label={t("rules.surrenderAllowed")}
           checked={rules.surrender_allowed}
           onChange={(v) => updateRule("surrender_allowed", v)}
         />

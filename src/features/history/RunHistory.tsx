@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ApiError } from "@/api/client";
 import { getRun, listRuns } from "@/api/endpoints";
 import { useAction } from "@/hooks/use-action";
@@ -9,18 +10,20 @@ import type { RunSummary } from "@/types/api";
 const LIMIT = 20;
 
 function KindBadge({ kind }: { kind: RunSummary["kind"] }) {
+  const { t } = useTranslation();
   const style =
     kind === "counting"
       ? "bg-indigo-500/20 text-indigo-300"
       : "bg-slate-500/20 text-slate-300";
   return (
     <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${style}`}>
-      {kind}
+      {t(kind === "counting" ? "history.kindCounting" : "history.kindBasic")}
     </span>
   );
 }
 
 function RunRow({ run }: { run: RunSummary }) {
+  const { t } = useTranslation();
   return (
     <tr className="border-b border-slate-800 last:border-0">
       <td className="px-3 py-2 font-mono text-sm text-slate-300">#{run.id}</td>
@@ -50,7 +53,7 @@ function RunRow({ run }: { run: RunSummary }) {
       <td className="px-3 py-2 text-center">
         {run.ruined ? (
           <span className="rounded bg-red-500/20 px-1.5 py-0.5 text-xs text-red-300">
-            ruined
+            {t("history.ruined")}
           </span>
         ) : (
           <span className="text-xs text-slate-600">—</span>
@@ -61,10 +64,11 @@ function RunRow({ run }: { run: RunSummary }) {
 }
 
 function RunsTable({ runs }: { runs: RunSummary[] }) {
+  const { t } = useTranslation();
   if (runs.length === 0) {
     return (
       <div className="rounded-lg border border-slate-700 bg-slate-800/40 p-8 text-center text-sm text-slate-400">
-        No runs yet. Run a simulation or a counting session to populate history.
+        {t("history.empty")}
       </div>
     );
   }
@@ -74,13 +78,13 @@ function RunsTable({ runs }: { runs: RunSummary[] }) {
       <table className="w-full border-collapse">
         <thead className="bg-slate-800/60">
           <tr className="text-xs font-semibold tracking-wide text-slate-400 uppercase">
-            <th className="px-3 py-2 text-left">Run</th>
-            <th className="px-3 py-2 text-left">Created</th>
-            <th className="px-3 py-2 text-left">Kind</th>
-            <th className="px-3 py-2 text-right">Rounds</th>
-            <th className="px-3 py-2 text-right">House edge</th>
-            <th className="px-3 py-2 text-right">EV / round</th>
-            <th className="px-3 py-2 text-center">Status</th>
+            <th className="px-3 py-2 text-left">{t("history.colRun")}</th>
+            <th className="px-3 py-2 text-left">{t("history.colCreated")}</th>
+            <th className="px-3 py-2 text-left">{t("history.colKind")}</th>
+            <th className="px-3 py-2 text-right">{t("history.colRounds")}</th>
+            <th className="px-3 py-2 text-right">{t("history.colHouseEdge")}</th>
+            <th className="px-3 py-2 text-right">{t("history.colEv")}</th>
+            <th className="px-3 py-2 text-center">{t("history.colStatus")}</th>
           </tr>
         </thead>
         <tbody>
@@ -94,6 +98,7 @@ function RunsTable({ runs }: { runs: RunSummary[] }) {
 }
 
 function RunLookup() {
+  const { t } = useTranslation();
   const [id, setId] = useState("");
   const { state, run } = useAction<RunSummary>();
 
@@ -110,14 +115,16 @@ function RunLookup() {
 
   return (
     <div className="flex flex-col gap-2 rounded-lg border border-slate-700/60 bg-slate-800/40 p-3">
-      <span className="text-sm font-medium text-slate-200">Look up a run</span>
+      <span className="text-sm font-medium text-slate-200">
+        {t("history.lookupTitle")}
+      </span>
       <div className="flex gap-2">
         <input
           type="number"
           value={id}
           min={1}
-          placeholder="Run ID"
-          aria-label="Run ID"
+          placeholder={t("history.runId")}
+          aria-label={t("history.runId")}
           onChange={(e) => setId(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") handleLookup();
@@ -130,12 +137,14 @@ function RunLookup() {
           disabled={id === "" || state.status === "loading"}
           className="rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Look up
+          {t("history.lookup")}
         </button>
       </div>
 
       {notFound && (
-        <p className="text-xs text-amber-300">No run found with id {id}.</p>
+        <p className="text-xs text-amber-300">
+          {t("history.notFound", { id })}
+        </p>
       )}
       {state.status === "error" && !notFound && (
         <p className="text-xs text-red-300">{state.error.message}</p>
@@ -144,9 +153,15 @@ function RunLookup() {
         <div className="flex items-center gap-3 text-sm text-slate-300">
           <span className="font-mono">#{state.data.id}</span>
           <KindBadge kind={state.data.kind} />
-          <span>{formatInt(state.data.rounds_played)} rounds</span>
-          <span>{formatPct(state.data.house_edge_pct)} edge</span>
-          {state.data.ruined && <span className="text-red-300">ruined</span>}
+          <span>
+            {t("history.rounds", { value: formatInt(state.data.rounds_played) })}
+          </span>
+          <span>
+            {t("history.edge", { value: formatPct(state.data.house_edge_pct) })}
+          </span>
+          {state.data.ruined && (
+            <span className="text-red-300">{t("history.ruined")}</span>
+          )}
         </div>
       )}
     </div>
@@ -154,6 +169,7 @@ function RunLookup() {
 }
 
 export function RunHistory() {
+  const { t } = useTranslation();
   const [refreshKey, setRefreshKey] = useState(0);
   const state = useAsync((signal) => listRuns(LIMIT, signal), [refreshKey]);
 
@@ -161,9 +177,11 @@ export function RunHistory() {
     <section className="flex flex-col gap-4">
       <header className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-slate-100">Run history</h2>
+          <h2 className="text-lg font-semibold text-slate-100">
+            {t("history.title")}
+          </h2>
           <p className="text-xs text-slate-400">
-            The {LIMIT} most recent simulation and counting runs.
+            {t("history.subtitle", { limit: LIMIT })}
           </p>
         </div>
         <button
@@ -171,7 +189,7 @@ export function RunHistory() {
           onClick={() => setRefreshKey((k) => k + 1)}
           className="rounded-md border border-slate-600 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-700"
         >
-          Refresh
+          {t("history.refresh")}
         </button>
       </header>
 
@@ -179,12 +197,12 @@ export function RunHistory() {
 
       {state.status === "loading" && (
         <div className="rounded-lg border border-slate-700 bg-slate-800/40 p-8 text-center text-sm text-slate-400">
-          Loading runs…
+          {t("history.loading")}
         </div>
       )}
       {state.status === "error" && (
         <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">
-          <p className="font-medium">Could not load run history.</p>
+          <p className="font-medium">{t("history.errorTitle")}</p>
           <p className="mt-1 text-red-300/80">{state.error.message}</p>
         </div>
       )}

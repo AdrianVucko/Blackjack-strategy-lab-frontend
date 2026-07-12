@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getStrategyChart } from "@/api/endpoints";
 import { useAsync } from "@/hooks/use-async";
 import { useRules } from "@/state/rules-context";
@@ -6,20 +7,20 @@ import { UPCARDS, type Action } from "@/types/api";
 import {
   ACTION_ABBR,
   ACTION_BG,
-  ACTION_LABELS,
   buildRows,
   type StrategyTab,
 } from "./strategy-grid";
 
-const TABS: { id: StrategyTab; label: string }[] = [
-  { id: "hard", label: "Hard totals" },
-  { id: "soft", label: "Soft hands" },
-  { id: "pairs", label: "Pairs" },
+const TABS: { id: StrategyTab; labelKey: string }[] = [
+  { id: "hard", labelKey: "strategy.tabHard" },
+  { id: "soft", labelKey: "strategy.tabSoft" },
+  { id: "pairs", labelKey: "strategy.tabPairs" },
 ];
 
 const ACTIONS: Action[] = ["hit", "stand", "double", "split", "surrender"];
 
 function Legend() {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-wrap gap-3">
       {ACTIONS.map((action) => (
@@ -29,7 +30,7 @@ function Legend() {
           >
             {ACTION_ABBR[action]}
           </span>
-          <span className="text-slate-300">{ACTION_LABELS[action]}</span>
+          <span className="text-slate-300">{t(`action.${action}`)}</span>
         </div>
       ))}
     </div>
@@ -37,44 +38,39 @@ function Legend() {
 }
 
 export function StrategyChart() {
+  const { t } = useTranslation();
   const { rules } = useRules();
   const [tab, setTab] = useState<StrategyTab>("hard");
-  const state = useAsync(
-    (signal) => getStrategyChart(rules, signal),
-    [rules],
-  );
+  const state = useAsync((signal) => getStrategyChart(rules, signal), [rules]);
 
   return (
     <section className="flex flex-col gap-4">
       <header className="flex flex-col gap-1">
         <h2 className="text-lg font-semibold text-slate-100">
-          Basic strategy chart
+          {t("strategy.title")}
         </h2>
-        <p className="text-xs text-slate-400">
-          Optimal play for the current rules. Rows are hands, columns are the
-          dealer&rsquo;s up-card. Re-computed whenever the rules change.
-        </p>
+        <p className="text-xs text-slate-400">{t("strategy.subtitle")}</p>
       </header>
 
       <div className="flex items-center justify-between gap-4">
         <div
           role="tablist"
-          aria-label="Hand category"
+          aria-label={t("strategy.hand")}
           className="inline-flex rounded-lg border border-slate-700 bg-slate-800/60 p-1"
         >
-          {TABS.map((t) => (
+          {TABS.map((item) => (
             <button
-              key={t.id}
+              key={item.id}
               role="tab"
-              aria-selected={tab === t.id}
-              onClick={() => setTab(t.id)}
+              aria-selected={tab === item.id}
+              onClick={() => setTab(item.id)}
               className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                tab === t.id
+                tab === item.id
                   ? "bg-emerald-600 text-white"
                   : "text-slate-300 hover:text-white"
               }`}
             >
-              {t.label}
+              {t(item.labelKey)}
             </button>
           ))}
         </div>
@@ -83,17 +79,20 @@ export function StrategyChart() {
 
       {state.status === "loading" && (
         <div className="rounded-lg border border-slate-700 bg-slate-800/40 p-8 text-center text-sm text-slate-400">
-          Loading strategy…
+          {t("strategy.loading")}
         </div>
       )}
 
       {state.status === "error" && (
         <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-6 text-sm text-red-200">
-          <p className="font-medium">Could not load the strategy chart.</p>
+          <p className="font-medium">{t("strategy.errorTitle")}</p>
           <p className="mt-1 text-red-300/80">{state.error.message}</p>
           <p className="mt-2 text-xs text-red-300/60">
-            Is the backend running on{" "}
-            <code>{import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"}</code>?
+            {t("strategy.backendHint")}{" "}
+            <code>
+              {import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"}
+            </code>
+            ?
           </p>
         </div>
       )}
@@ -111,6 +110,7 @@ interface ChartGridProps {
 }
 
 function ChartGrid({ chart, tab }: ChartGridProps) {
+  const { t } = useTranslation();
   const rows = buildRows(chart, tab);
   const notes = rows.filter((r) => r.note);
 
@@ -121,7 +121,7 @@ function ChartGrid({ chart, tab }: ChartGridProps) {
           <thead>
             <tr>
               <th className="w-16 px-2 py-1 text-left text-xs font-semibold text-slate-400">
-                Hand
+                {t("strategy.hand")}
               </th>
               {UPCARDS.map((u) => (
                 <th
@@ -150,7 +150,11 @@ function ChartGrid({ chart, tab }: ChartGridProps) {
                   return (
                     <td key={u} className="p-0">
                       <div
-                        title={`${row.label} vs ${u}: ${ACTION_LABELS[action]}`}
+                        title={t("strategy.cellTitle", {
+                          hand: row.label,
+                          up: u,
+                          action: t(`action.${action}`),
+                        })}
                         className={`flex h-9 w-10 items-center justify-center rounded text-xs font-bold text-white ${ACTION_BG[action]} ${
                           row.implicit ? "opacity-60" : ""
                         }`}
@@ -169,13 +173,11 @@ function ChartGrid({ chart, tab }: ChartGridProps) {
       <div className="flex flex-col gap-1 text-xs text-slate-500">
         {notes.map((n) => (
           <p key={n.label}>
-            <span className="font-semibold">{n.label}*</span> {n.note}
+            <span className="font-semibold">{n.label}*</span>{" "}
+            {t(`strategy.${n.note}`)}
           </p>
         ))}
-        <p>
-          Dimmed rows are implied by the rules (hard ≤7 always hit, ≥18 always
-          stand) and are not returned by the API.
-        </p>
+        <p>{t("strategy.implicitNote")}</p>
       </div>
     </div>
   );

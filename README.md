@@ -34,6 +34,14 @@ retryable error).
 | `npm run typecheck` | `tsc` only |
 | `npm run lint` | oxlint |
 
+## Internationalization
+
+The UI is translated with `react-i18next`. **Croatian (`hr`) is the default**;
+English (`en`) and German (`de`) are available via the language switcher in the
+header, and the choice is persisted to `localStorage`. Numbers and dates are
+formatted per the active locale (`hr-HR` / `en-US` / `de-DE`). Translation
+bundles live in `src/i18n/locales/`.
+
 ## Configuration
 
 `VITE_API_BASE_URL` sets the backend origin (default `http://localhost:8000`).

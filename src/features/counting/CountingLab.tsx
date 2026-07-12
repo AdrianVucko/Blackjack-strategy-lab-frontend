@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ChartPanel } from "@/components/ChartPanel";
 import { NumberField, SelectField, Toggle } from "@/components/ui/controls";
 import { StatCard } from "@/components/ui/StatCard";
@@ -54,6 +55,7 @@ interface CountingResult {
 }
 
 export function CountingLab() {
+  const { t } = useTranslation();
   const { rules } = useRules();
   const [params, setParams] = useState<CountingParams>(DEFAULT_PARAMS);
   const { state, run } = useAction<CountingResult>();
@@ -87,31 +89,30 @@ export function CountingLab() {
 
   const running = state.status === "loading";
   const countLabel =
-    countKind(params.system) === "running count" ? "Running count" : "True count";
+    countKind(params.system) === "running count"
+      ? t("ramp.runningCount")
+      : t("ramp.trueCount");
 
   return (
     <section className="flex flex-col gap-5">
       <header className="flex flex-col gap-1">
         <h2 className="text-lg font-semibold text-slate-100">
-          Card counting lab
+          {t("counting.title")}
         </h2>
-        <p className="text-xs text-slate-400">
-          Simulates a counting system that varies the bet by the count. Play
-          follows basic strategy; only the wager changes.
-        </p>
+        <p className="text-xs text-slate-400">{t("counting.subtitle")}</p>
       </header>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <SelectField
           id="system"
-          label="Counting system"
+          label={t("counting.system")}
           value={params.system}
           options={COUNTING_SYSTEMS.map((s) => ({ label: s, value: s }))}
           onChange={(v) => update("system", v)}
         />
         <NumberField
           id="base_bet"
-          label="Base bet (money / unit)"
+          label={t("counting.baseBet")}
           value={params.base_bet}
           min={0.01}
           step={1}
@@ -120,8 +121,8 @@ export function CountingLab() {
         <div className="sm:col-span-2">
           <NumberField
             id="num_rounds"
-            label="Rounds"
-            hint="Counting needs volume — high counts are rare."
+            label={t("counting.rounds")}
+            hint={t("counting.roundsHint")}
             value={params.num_rounds}
             min={1}
             max={5_000_000}
@@ -149,8 +150,8 @@ export function CountingLab() {
 
       <div className="flex flex-col divide-y divide-slate-700/60 rounded-lg border border-slate-700/60 bg-slate-800/40 px-4 py-1">
         <Toggle
-          label="Custom bet ramp"
-          hint="Off = classic 1–12 Hi-Lo spread"
+          label={t("counting.customRamp")}
+          hint={t("counting.customRampHint")}
           checked={params.customRamp}
           onChange={(v) => update("customRamp", v)}
         />
@@ -165,7 +166,7 @@ export function CountingLab() {
           </div>
         )}
         <Toggle
-          label="Reproducible (fixed seed)"
+          label={t("counting.reproducible")}
           checked={params.reproducible}
           onChange={(v) => update("reproducible", v)}
         />
@@ -173,7 +174,7 @@ export function CountingLab() {
           <div className="py-2">
             <NumberField
               id="counting_seed"
-              label="Seed"
+              label={t("counting.seed")}
               value={params.seed}
               min={0}
               step={1}
@@ -182,8 +183,8 @@ export function CountingLab() {
           </div>
         )}
         <Toggle
-          label="Track bankroll"
-          hint="Enables the risk-of-ruin estimate"
+          label={t("counting.trackBankroll")}
+          hint={t("counting.trackBankrollHint")}
           checked={params.trackBankroll}
           onChange={(v) => update("trackBankroll", v)}
         />
@@ -191,7 +192,7 @@ export function CountingLab() {
           <div className="py-2">
             <NumberField
               id="counting_bankroll"
-              label="Starting bankroll"
+              label={t("counting.startingBankroll")}
               value={params.starting_bankroll}
               min={1}
               step={100}
@@ -207,19 +208,22 @@ export function CountingLab() {
         disabled={running}
         className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {running ? "Running simulation…" : "Run counting simulation"}
+        {running ? t("counting.running") : t("counting.run")}
       </button>
 
       {state.status === "error" && (
         <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">
-          <p className="font-medium">Simulation failed.</p>
+          <p className="font-medium">{t("counting.errorTitle")}</p>
           <p className="mt-1 text-red-300/80">{state.error.message}</p>
         </div>
       )}
 
       {running && (
         <div className="rounded-lg border border-slate-700 bg-slate-800/40 p-8 text-center text-sm text-slate-400">
-          Simulating {formatInt(params.num_rounds)} rounds of {params.system}…
+          {t("counting.simulating", {
+            n: formatInt(params.num_rounds),
+            system: params.system,
+          })}
         </div>
       )}
 
@@ -229,6 +233,7 @@ export function CountingLab() {
 }
 
 function Results({ result }: { result: CountingResult }) {
+  const { t } = useTranslation();
   const { sim, edgeCurve, trueCountDist } = result;
   const stats = sim.statistics;
 
@@ -236,37 +241,40 @@ function Results({ result }: { result: CountingResult }) {
     <div className="flex flex-col gap-5">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         <StatCard
-          label="Average bet"
+          label={t("stat.averageBet")}
           value={formatUnits(sim.average_bet, 2)}
-          hint="Bet-weighted spread in use"
+          hint={t("stat.averageBetHint")}
         />
         <StatCard
-          label="Aggregate edge"
+          label={t("stat.aggregateEdge")}
           value={formatPct(stats.house_edge_pct)}
           tone={stats.house_edge_pct > 0 ? "bad" : "good"}
-          hint="Bet-weighted; count edge shows in the curve"
+          hint={t("stat.aggregateEdgeHint")}
         />
         <StatCard
-          label="EV / round"
+          label={t("stat.ev")}
           value={formatSigned(stats.ev_per_round)}
           tone={stats.ev_per_round >= 0 ? "good" : "bad"}
-          hint={`95% CI [${stats.ci95[0].toFixed(3)}, ${stats.ci95[1].toFixed(3)}]`}
+          hint={t("stat.ci95", {
+            low: stats.ci95[0].toFixed(3),
+            high: stats.ci95[1].toFixed(3),
+          })}
         />
         <StatCard
-          label="Total result"
+          label={t("stat.totalResult")}
           value={formatUnits(stats.total_result, 1)}
           tone={stats.total_result >= 0 ? "good" : "bad"}
         />
-        <StatCard label="Std. deviation" value={stats.std_dev.toFixed(3)} />
+        <StatCard label={t("stat.stdDev")} value={stats.std_dev.toFixed(3)} />
         <StatCard
-          label="Rounds played"
+          label={t("stat.roundsPlayed")}
           value={formatInt(sim.rounds_played)}
-          hint={sim.ruined ? "ended early — bankroll ruined" : undefined}
+          hint={sim.ruined ? t("stat.ruinedEarly") : undefined}
           tone={sim.ruined ? "bad" : "neutral"}
         />
         {stats.risk_of_ruin !== null && (
           <StatCard
-            label="Risk of ruin"
+            label={t("stat.riskOfRuin")}
             value={formatPct(stats.risk_of_ruin * 100, 1)}
             tone={stats.risk_of_ruin > 0.5 ? "bad" : "neutral"}
           />
@@ -274,14 +282,14 @@ function Results({ result }: { result: CountingResult }) {
       </div>
 
       <ChartPanel
-        title="Player edge by true count"
-        description="The teaching centerpiece: edge turns positive as the count climbs (green above 0, red below)."
+        title={t("counting.edgeTitle")}
+        description={t("counting.edgeDesc")}
         figure={edgeCurve}
         height={380}
       />
       <ChartPanel
-        title="True-count distribution"
-        description="How often each count actually occurs — high counts are rare, which is why the spread matters."
+        title={t("counting.distTitle")}
+        description={t("counting.distDesc")}
         figure={trueCountDist}
       />
     </div>

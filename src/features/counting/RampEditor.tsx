@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { RAMP_FLOOR, type RampTier } from "./counting";
 
 interface RampEditorProps {
@@ -13,8 +14,10 @@ export function RampEditor({
   baseBet,
   onChange,
 }: RampEditorProps) {
+  const { t } = useTranslation();
+
   const setTier = (index: number, patch: Partial<RampTier>) =>
-    onChange(tiers.map((t, i) => (i === index ? { ...t, ...patch } : t)));
+    onChange(tiers.map((tier, i) => (i === index ? { ...tier, ...patch } : tier)));
 
   const addTier = () => {
     const last = tiers[tiers.length - 1];
@@ -26,11 +29,13 @@ export function RampEditor({
   const removeTier = (index: number) =>
     onChange(tiers.filter((_, i) => i !== index));
 
+  const maxUnits = Math.max(...tiers.map((tier) => tier.units));
+
   return (
     <div className="flex flex-col gap-2">
       <div className="grid grid-cols-[1fr_1fr_2rem] gap-2 text-xs font-medium text-slate-400">
-        <span>{countLabel} ≥</span>
-        <span>Bet (units)</span>
+        <span>{t("ramp.threshold", { count: countLabel })}</span>
+        <span>{t("ramp.betUnits")}</span>
         <span />
       </div>
 
@@ -43,12 +48,12 @@ export function RampEditor({
           >
             {isFloor ? (
               <span className="rounded-md border border-slate-700 bg-slate-800/60 px-3 py-2 text-sm text-slate-400">
-                floor (−∞)
+                {t("ramp.floor")}
               </span>
             ) : (
               <input
                 type="number"
-                aria-label={`Tier ${index} count`}
+                aria-label={t("ramp.tierCount", { index })}
                 value={tier.count}
                 step={1}
                 onChange={(e) => setTier(index, { count: Number(e.target.value) })}
@@ -57,7 +62,7 @@ export function RampEditor({
             )}
             <input
               type="number"
-              aria-label={`Tier ${index} units`}
+              aria-label={t("ramp.tierUnits", { index })}
               value={tier.units}
               min={0}
               step={1}
@@ -66,7 +71,7 @@ export function RampEditor({
             />
             <button
               type="button"
-              aria-label={`Remove tier ${index}`}
+              aria-label={t("ramp.removeTier", { index })}
               onClick={() => removeTier(index)}
               disabled={tiers.length <= 1}
               className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-600 text-slate-400 hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
@@ -83,18 +88,22 @@ export function RampEditor({
           onClick={addTier}
           className="rounded-md border border-slate-600 px-2 py-1 text-xs text-slate-300 hover:bg-slate-700"
         >
-          + Add tier
+          {t("ramp.addTier")}
         </button>
         <span className="text-xs text-slate-500">
-          Max wager: {(Math.max(...tiers.map((t) => t.units)) * baseBet).toFixed(0)}{" "}
-          ({Math.max(...tiers.map((t) => t.units))}× {baseBet})
+          {t("ramp.maxWager", {
+            value: (maxUnits * baseBet).toFixed(0),
+            mult: maxUnits,
+            base: baseBet,
+          })}
         </span>
       </div>
 
       <p className="text-xs text-slate-500">
-        Step function: bet each tier&rsquo;s units while the {countLabel.toLowerCase()} is at
-        or above its threshold. The floor tier applies below all others (sent as{" "}
-        {RAMP_FLOOR}).
+        {t("ramp.explanation", {
+          count: countLabel.toLowerCase(),
+          floor: RAMP_FLOOR,
+        })}
       </p>
     </div>
   );
