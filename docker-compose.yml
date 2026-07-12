@@ -1,18 +1,49 @@
 services:
+  backend:
+    # Built from the sibling backend checkout; override with BACKEND_CONTEXT if it
+    # lives elsewhere (path is relative to this compose file).
+    build:
+      context: ${BACKEND_CONTEXT:-../Blackjack-strategy-lab-backend}
+    ports:
+      - "8000:8000" # exposed on the host for /docs and non-Docker `npm run dev`
+    environment:
+      - DATABASE_URL=sqlite:////app/data/blackjack.db
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+    volumes:
+      - blackjack-data:/app/data # persist run history across restarts
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
   frontend:
     build:
       context: .
       args:
-        # Same-origin path handled by the nginx reverse proxy. Rarely needs changing.
+        # Same-origin path handled by the nginx reverse proxy.
         VITE_API_BASE_URL: /api
     ports:
       - "5173:80"
     environment:
-      # Where nginx forwards /api. Use a compose service name (e.g. http://backend:8000)
-      # if the backend runs in the same compose project, or host.docker.internal for a
-      # backend running on the host machine.
-      BACKEND_URL: http://host.docker.internal:8000
+      # nginx forwards /api here. Uses the compose service name over the shared
+      # network; nginx resolves it at startup, hence depends_on: service_healthy.
+      BACKEND_URL: http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
     extra_hosts:
-      # Lets host.docker.internal resolve on Linux (already works on Docker Desktop).
+      # Only needed if BACKEND_URL is overridden to a backend on the host machine.
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
+
+volumes:
+  blackjack-data:
