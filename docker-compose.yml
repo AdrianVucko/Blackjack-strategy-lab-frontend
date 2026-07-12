@@ -1,0 +1,18 @@
+services:
+  frontend:
+    build:
+      context: .
+      args:
+        # Same-origin path handled by the nginx reverse proxy. Rarely needs changing.
+        VITE_API_BASE_URL: /api
+    ports:
+      - "5173:80"
+    environment:
+      # Where nginx forwards /api. Use a compose service name (e.g. http://backend:8000)
+      # if the backend runs in the same compose project, or host.docker.internal for a
+      # backend running on the host machine.
+      BACKEND_URL: http://host.docker.internal:8000
+    extra_hosts:
+      # Lets host.docker.internal resolve on Linux (already works on Docker Desktop).
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

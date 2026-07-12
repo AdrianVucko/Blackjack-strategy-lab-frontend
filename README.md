@@ -39,6 +39,33 @@ retryable error).
 `VITE_API_BASE_URL` sets the backend origin (default `http://localhost:8000`).
 CORS on the backend is preconfigured for the Vite port `5173`.
 
+## Docker
+
+Multi-stage build (Node builds the bundle, nginx serves it). nginx reverse-proxies
+`/api` to the backend, so the browser only talks to one origin — no CORS.
+
+```bash
+docker compose up --build        # http://localhost:5173
+```
+
+Two independent knobs, because Vite inlines `VITE_*` at build time but the proxy
+target is read at container start:
+
+| Setting | When | Default | Purpose |
+|---------|------|---------|---------|
+| `VITE_API_BASE_URL` (build arg) | build | `/api` | Path the app calls; keep as `/api` to use the proxy |
+| `BACKEND_URL` (env var) | runtime | `http://host.docker.internal:8000` | Where nginx forwards `/api/*` |
+
+```bash
+# Plain docker: build once, point the proxy at any backend at run time
+docker build -t blackjack-frontend .
+docker run --rm -p 5173:80 -e BACKEND_URL=http://host.docker.internal:8000 blackjack-frontend
+```
+
+`/api/strategy/chart` → nginx → `${BACKEND_URL}/strategy/chart` (the `/api` prefix
+is stripped). For a backend in the same compose project, set
+`BACKEND_URL=http://backend:8000`.
+
 ## Structure
 
 ```
