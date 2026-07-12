@@ -168,4 +168,7 @@ export const en = {
   lang: {
     label: "Language",
   },
+  theme: {
+    toggle: "Toggle light / dark theme",
+  },
 } as const;

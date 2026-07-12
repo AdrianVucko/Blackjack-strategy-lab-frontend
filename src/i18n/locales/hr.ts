@@ -171,4 +171,7 @@ export const hr = {
   lang: {
     label: "Jezik",
   },
+  theme: {
+    toggle: "Promijeni svijetlu / tamnu temu",
+  },
 } as const;

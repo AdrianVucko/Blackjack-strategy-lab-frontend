@@ -171,4 +171,7 @@ export const de = {
   lang: {
     label: "Sprache",
   },
+  theme: {
+    toggle: "Helles / dunkles Thema wechseln",
+  },
 } as const;

@@ -42,6 +42,15 @@ header, and the choice is persisted to `localStorage`. Numbers and dates are
 formatted per the active locale (`hr-HR` / `en-US` / `de-DE`). Translation
 bundles live in `src/i18n/locales/`.
 
+## Theming
+
+Dark (default) and light themes, toggled from the header and persisted to
+`localStorage`. The dark theme is the authored baseline; the light theme is
+defined entirely in `src/index.css` under `:root[data-theme="light"]` (it remaps
+the Tailwind colour variables plus the few opacity-modified utilities), so
+components carry no theme-specific classes. `main.tsx` applies the stored theme
+before first paint to avoid a flash.
+
 ## Configuration
 
 `VITE_API_BASE_URL` sets the backend origin (default `http://localhost:8000`).

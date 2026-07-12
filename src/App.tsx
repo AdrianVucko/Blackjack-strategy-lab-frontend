@@ -4,6 +4,7 @@ import { apiGet } from "@/api/client";
 import { useAsync } from "@/hooks/use-async";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { RulesConfigurator } from "@/features/rules/RulesConfigurator";
 import { StrategyChart } from "@/features/strategy/StrategyChart";
 import { RunHistory } from "@/features/history/RunHistory";
@@ -83,6 +84,7 @@ function App() {
           <div className="flex items-center gap-4">
             <HealthBadge />
             <LanguageSwitcher />
+            <ThemeToggle />
           </div>
         </header>
 

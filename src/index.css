@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  /* Strategy action palette (handoff §8) */
+  /* Strategy action palette (handoff §8) — identical in both themes:
+     vivid cells with white text read well on light and dark surfaces. */
   --color-hit: #ef4444;
   --color-stand: #16a34a;
   --color-double: #2563eb;
@@ -12,6 +13,10 @@
   --color-felt-dark: #0a3a24;
 }
 
+/* ------------------------------------------------------------------ */
+/* Dark theme (default). The whole app is authored in these colours;   */
+/* it renders unchanged when no data-theme (or data-theme="dark") set. */
+/* ------------------------------------------------------------------ */
 :root {
   color-scheme: dark;
 }
@@ -27,4 +32,66 @@ body {
   background-color: #0b1120;
   color: #e5e7eb;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ------------------------------------------------------------------ */
+/* Light theme. Activated by data-theme="light" on <html>. Components  */
+/* are untouched: most utilities read var(--color-*), which we remap   */
+/* here; the few opacity-modified utilities inline their colour at     */
+/* build time, so those are overridden explicitly below.               */
+/* ------------------------------------------------------------------ */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  /* Neutral ramp — role-inverted (low = foreground, high = surface). */
+  --color-slate-50: #0a1120;
+  --color-slate-100: #18213a;
+  --color-slate-200: #26304a;
+  --color-slate-300: #3a4661;
+  --color-slate-400: #58657f;
+  --color-slate-500: #8695ab;
+  --color-slate-600: #b9c3d4;
+  --color-slate-700: #d5dce7;
+  --color-slate-800: #e7ecf3;
+  --color-slate-900: #f4f7fb;
+  --color-slate-950: #ffffff;
+
+  /* Accent text tones darkened for contrast on light surfaces.
+     Fills (emerald-500/600, red-500, amber-400, indigo-500) keep their
+     vivid values — they carry white/tinted content in both themes. */
+  --color-emerald-300: #047857;
+  --color-emerald-400: #059669;
+  --color-red-200: #b42318;
+  --color-red-300: #c0392b;
+  --color-red-400: #dc2626;
+  --color-amber-300: #b45309;
+  --color-indigo-300: #4338ca;
+}
+
+:root[data-theme="light"] body {
+  background-color: #eef2f7;
+  color: #18213a;
+}
+
+/* Opacity-modified utilities (inlined at build time — not variable-driven). */
+:root[data-theme="light"] .bg-slate-900\/60 {
+  background-color: #ffffff;
+}
+:root[data-theme="light"] .bg-slate-800\/40 {
+  background-color: #f8fafc;
+}
+:root[data-theme="light"] .bg-slate-800\/60 {
+  background-color: #eef2f8;
+}
+:root[data-theme="light"] .border-slate-700\/60 {
+  border-color: #e3e8f0;
+}
+:root[data-theme="light"] .divide-slate-700\/60 > :not(:last-child) {
+  border-color: #e7ecf3;
+}
+:root[data-theme="light"] .text-red-300\/80 {
+  color: #b42318;
+}
+:root[data-theme="light"] .text-red-300\/60 {
+  color: #c2564a;
 }
